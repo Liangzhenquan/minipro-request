@@ -1,0 +1,25 @@
+{
+  "name": "minipro-request",
+  "version": "1.0.0",
+  "description": "一个小程序的请求库",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "miniprogram",
+    "小程序",
+    "请求库",
+    "简单"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Liangzhenquan/minipro-request.git"
+  },
+  "author": "liangzhenquan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Liangzhenquan/minipro-request/issues"
+  },
+  "homepage": "https://github.com/Liangzhenquan/minipro-request#readme"
+}
