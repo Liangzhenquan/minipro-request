@@ -1,9 +1,6 @@
 function copyProperties(target, source) {
   for (let key of Reflect.ownKeys(source)) {
-    if ( key !== 'constructor'
-      && key !== 'prototype'
-      && key !== 'name'
-    ) {
+    if (key !== "constructor" && key !== "prototype" && key !== "name") {
       let desc = Object.getOwnPropertyDescriptor(source, key);
       Object.defineProperty(target, key, desc);
     }
@@ -24,16 +21,15 @@ function mix(...mixins) {
   }
   return Mix;
 }
-function mixedServe({request,services}) {
-  console.log('rrr',request)
+function mixedServe({ request, services }) {
   class MixedService extends mix(...services) {
     constructor(props) {
       super();
     }
   }
-  const instance = new MixedService()
-  instance.request = request
-  return instance
+  const instance = new MixedService();
+  instance.request = request;
+  return instance;
 }
 
-export default mixedServe
+export default mixedServe;

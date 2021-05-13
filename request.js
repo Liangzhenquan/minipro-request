@@ -1,71 +1,65 @@
-class MiniproRequest {
-  constructor(options) {
-    const {requestInterceptors,responseInterceptors,...other} = options
-    this.options = other
-    this.reqInterceptors = requestInterceptors || []
-    this.resInterceptors = responseInterceptors || []
+class Request {
+  constructor(props = {}) {
+    this.globalOptions = {
+      header: {},
+      ...props,
+    };
+    this.interceptors = {
+      request: [],
+      response: [],
+    };
   }
-  useInterceptor(props) {
-    const {initValue,arr} = props
-    const copyOptions = Object.assign({},initValue,{})   //拷贝一份参数
-    return arr.reduce((total,cur) => {
-      const copyTotal = Object.assign({},total,{})
-      return cur(copyTotal)
-    }, copyOptions)
+  useRequestInterceptor(resolved, rejected) {
+    this.interceptors.request.push({ resolved, rejected });
   }
-  useReqInter(options) {
-    return this.useInterceptor({
-      initValue: options,
-      arr: this.reqInterceptors
-    })
-  }
-  useResInter(res) {
-    return this.useInterceptor({
-      initValue: res,
-      arr: this.resInterceptors
-    })
-  }
-  mergeOptions(props) {
-     const {options,method} = props
-     const {url,data,...otherOptions} = options
-     return {
-      ...this.options,
-      url: this.options.baseUrl + url,
-      data,
-      header: {
-        ...this.options.header || {},
-        ...otherOptions.header || {}
-      },
-      ...otherOptions,
-      method
-     }
-  }
-  request(options) {
-    const newOptions = this.useReqInter(this.mergeOptions(options))
-    return new Promise((resolve,reject) => {
-      wx.request({
-        ...newOptions,
-        success: (res) => {
-          const newRes = this.useResInter(res)
-          resolve(newRes.data)
-        },
-        fail: (err) => {
-          reject(err)
-        }
-      })
-    })
-  }
-  post(options = {}) {
-    return this.request({
-      options,
-      method: "POST"
-    })
+  useResponseInterceptor(resolved, rejected) {
+    this.interceptors.response.push({ resolved, rejected });
   }
   get(options = {}) {
-    return this.request({
-      options,
-      method: "GET"
-    })
+    return this.run({
+      ...options,
+      method: 'GET',
+    });
+  }
+  post(options = {}) {
+    return this.run({
+      ...options,
+      method: 'POST',
+    });
+  }
+  request(options = {}) {
+    return new Promise((resolve, reject) => {
+      wx.request({
+        ...options,
+        success: (res) => {
+          resolve(res);
+        },
+        fail: (err) => {
+          reject(err);
+        },
+      });
+    });
+  }
+  run(config) {
+    const chain = [
+      {
+        resolved: this.request,
+        rejected: undefined,
+      },
+    ];
+    this.interceptors.request.forEach((interceptor) => {
+      chain.unshift(interceptor);
+    });
+    this.interceptors.response.forEach((interceptor) => {
+      chain.push(interceptor);
+    });
+    let promise = Promise.resolve({ ...this.globalOptions, ...config });
+    while (chain.length) {
+      const { resolved, rejected } = chain.shift();
+      promise = promise.then(resolved, rejected);
+    }
+    return promise;
   }
 }
-export default MiniproRequest
+
+export default Request;

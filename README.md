@@ -12,10 +12,10 @@ npm i minipro-request or yarn add minipro-request
 
 ```js
 // app.js
-import { Request, mixedServe } from "minipro-request";
-// Request可接受默认的参数，baseUrl是域名
+import Request, { mixedServe } from 'minipro-request';
+// Request可接受默认的参数
 const request = new Request({
-  baseUrl: "url", //域名，
+  timeout: 10000, // 默认配置
 });
 App({
   onLaunch() {},
@@ -40,24 +40,25 @@ Page({
 })
 ```
 
-reqeust.post： post 请求
-reqeust.get： get 请求
-传染给 post 和 get 的其他请求，会覆盖 new Request 的时候的默认请求（除拦截器外） 3.使用拦截器
-可通过 new Request 的时候传入拦截器,requestInterceptors 和 responseInterceptors 接受一个数组
-数组可传入多个函数，函数必须 return config
+### 响应和请求拦截
 
 ```js
-const reqInter = (config) => {
-  config.header.token = "token";
-  return config;
-};
-const resInter = (res) => {
-  return res;
-};
-new Reuqest({
-  requestInterceptors: [reqInter],
-  responseInterceptors: [resInter],
+const req = new Request({
+  timeout: 10000,
 });
+req.useRequestInterceptor((config) => {
+  config.url = 'http://localhost:8080/' + (config.url || '');
+  config.header.Authorization = `Bearer`;
+  return config;
+});
+req.useResponseInterceptor(
+  (res) => {
+    console.log('响应成功', res);
+  },
+  (err) => {
+    console.log('响应失败', err);
+  },
+);
 ```
 
 ### 3.混入请求
@@ -81,20 +82,20 @@ class User {
 }
 
 // app.js
-import { Request, mixedServe } from "minipro-request";
-// Request可接受默认的参数，baseUrl是域名
+import Request,{ mixedServe } from "minipro-request";
+// Request可接受默认的参数
 const request = new Request({
-  baseUrl: "url", //域名，
+  timeout: 10000, // 默认配置
 });
 const list = ['user','list']
 const services = list.map((service) => require(`./services/${service}.js`));
-const request = mixedServe({
+const fetch = mixedServe({
   services,
   request
 })
 App({
   onLaunch(){},
-  request
+  request:fetch
 })
 
 //pages/index/index.js
